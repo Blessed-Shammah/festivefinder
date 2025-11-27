@@ -37,6 +37,21 @@
           -ms-overflow-style: none;
           scrollbar-width: none;
       }
+      /* Simple initial loader */
+      .initial-loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: 'Outfit', sans-serif;
+        color: #FF3B30;
+        font-weight: 500;
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .5; }
+      }
     </style>
   <script type="importmap">
 {
@@ -50,6 +65,11 @@
 </script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-loader">
+        Unwrapping FestiveFinder...
+      </div>
+    </div>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>
