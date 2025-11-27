@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DealProduct } from '../types';
-import { TagIcon, ExternalLinkIcon, ShareIcon, CheckIcon, ClockIcon } from './Icons';
+import { TagIcon, ExternalLinkIcon, ShareIcon, CheckIcon, ClockIcon, HeartIcon } from './Icons';
 
 interface DealCardProps {
   deal: DealProduct;
@@ -8,6 +8,19 @@ interface DealCardProps {
 
 export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
   const [isCopied, setIsCopied] = useState(false);
+
+  // Initialize favorite state from localStorage
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const stored = localStorage.getItem('festive_favorites');
+      const favorites = stored ? JSON.parse(stored) : [];
+      // Check by ID or Name+Store match for robustness
+      return favorites.some((f: DealProduct) => f.id === deal.id || (f.name === deal.name && f.store === deal.store));
+    } catch (e) {
+      return false;
+    }
+  });
 
   // Logic for Image URL:
   // 1. Use deal.imageUrl if provided by API (rare for text search)
@@ -40,6 +53,28 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
     }
   };
 
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const stored = localStorage.getItem('festive_favorites');
+      const favorites: DealProduct[] = stored ? JSON.parse(stored) : [];
+      
+      let newFavorites;
+      if (isFavorite) {
+        // Remove from favorites
+        newFavorites = favorites.filter(f => f.id !== deal.id && !(f.name === deal.name && f.store === deal.store));
+      } else {
+        // Add to favorites
+        newFavorites = [...favorites, deal];
+      }
+      
+      localStorage.setItem('festive_favorites', JSON.stringify(newFavorites));
+      setIsFavorite(!isFavorite);
+    } catch (err) {
+      console.error("Error updating favorites", err);
+    }
+  };
+
   return (
     <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col h-full transform hover:-translate-y-1">
       {/* Image Header */}
@@ -54,11 +89,25 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
              (e.target as HTMLImageElement).src = 'https://placehold.co/400x300?text=Festive+Deal';
            }}
          />
-         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md rounded-full px-3 py-1 text-gray-800 text-xs font-bold shadow-sm border border-gray-100">
+         
+         {/* Favorite Button */}
+         <button
+            onClick={toggleFavorite}
+            className="absolute top-3 left-3 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-sm border border-gray-100 hover:scale-110 transition-transform z-10 group/heart"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+         >
+            <HeartIcon 
+              className={`w-5 h-5 transition-colors duration-300 ${isFavorite ? 'text-festive-red' : 'text-gray-400 group-hover/heart:text-festive-red'}`} 
+              filled={isFavorite} 
+            />
+         </button>
+
+         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md rounded-full px-3 py-1 text-gray-800 text-xs font-bold shadow-sm border border-gray-100 z-10">
             {deal.store}
          </div>
          {/* Overlay gradient */}
-         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 pointer-events-none">
              <span className="text-white text-sm font-medium">View Deal</span>
          </div>
       </div>
