@@ -1,0 +1,5 @@
+{
+  "name": "FestiveFinder",
+  "description": "An AI-powered festive season discount finder that searches real-time deals using Google Gemini.",
+  "requestFramePermissions": []
+}
